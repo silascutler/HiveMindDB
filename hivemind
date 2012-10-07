@@ -1,0 +1,479 @@
+#!/usr/bin/perl
+##########################################################################################
+#	hivemind
+#		- Interface wth 
+#		- Version 1.0 Beta
+##########################################################################################
+#     __  ___            __  ____           __
+#    / / / (_)   _____  /  |/  (_)___  ____/ /
+#   / /_/ / / | / / _ \/ /|_/ / / __ \/ __  / 
+#  / __  / /| |/ /  __/ /  / / / / / / /_/ /  
+# /_/ /_/_/ |___/\___/_/  /_/_/_/ /_/\__,_/   
+#                                            
+##########################################################################################
+# Copyright (C) 2012, Silas Cutler
+#      <Silas.Cutler@BlackListThisDomain.com / scutler@SecureWorks.com>
+#
+# This program is free software; you can redistribute it and/or modify it under the
+#      terms of the GNU General Public License as published by the Free Software
+#      Foundation; either version 2 of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT ANY
+#      WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+#      PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+#
+#############################################################################################
+
+
+use strict;
+use warnings;
+use DBI;
+use Getopt::Long;
+
+
+# ----- ARGUMENTS ----- #
+my $database_name = "HiveMindDB";
+my $database_user = "root";
+my $database_password = "";
+
+
+my $dbh = DBI->connect('dbi:mysql:'. $database_name,$database_user,$database_password) or die "Connection Error: $DBI::errstr\n";
+
+
+#Input Handling.
+my ($help,
+	$add_domain,
+	$add_ip,
+	$delete_domain,
+	$delete_ip,
+	$add_domain_notes,
+	$add_ip_notes,
+	$delete_ip_notes,
+	$delete_domain_notes,
+	$list_domains,
+	$list_ips,
+	$check_domain,
+	$check_ip,
+	$note,
+	$list_domain_notes,
+	$list_ip_notes,
+	$search_ip_notes,
+	$search_domain_notes,
+	$search_domain
+	);
+	
+usage() if ( ( @ARGV < 1 or
+        ! GetOptions(
+                'help|?'          			      =>              \$help,
+                
+                'add-domain|ad=s'   		      =>              \$add_domain,
+                'add-ip|ai=s'   		          =>              \$add_ip,
+                
+                'rem-domain|rd=s'   		      =>              \$delete_domain,
+                'rem-ip|ri=s'   		          =>              \$delete_ip,
+                
+                'add-domain-notes|adn=s'   		  =>              \$add_domain_notes,
+                'add-ip-notes|ain=s'   		      =>              \$add_ip_notes,
+                
+                'rem-domain-notes|rdn=s'   		  =>              \$delete_domain_notes,
+                'rem-ip-notes|rin=s'   		      =>              \$delete_ip_notes,
+                
+                'list-ips|li'					  =>			  \$list_ips,
+                'list-domain|ld'				  =>			  \$list_domains,
+                
+                'list-domain-notes|ldn=s'         =>              \$list_domain_notes,
+                'list-ip-notes|lin=s'             =>              \$list_ip_notes,   
+
+                'search-domain-notes|sdn=s'         =>            \$search_domain_notes,
+                'search-ip-notes|sin=s'             =>            \$search_ip_notes,  
+ 
+                'search-domain|sd=s'     		    =>            \$search_domain,
+                
+                'check-domain|cd=s'				  =>			  \$check_domain,
+                'check-ip|ci=s'					  =>			  \$check_ip,
+
+                'note|n=s'						  =>			  \$note
+				
+                        )
+        or defined $help  )  );
+
+
+
+
+#############
+
+sub usage{
+        print "HiveMind v1.0 Beta \n\n";
+        print "usage: ./$0
+        -add-domain           ( -ad  )  <domain>   		- Add Domain for Database
+        -add-ip               ( -ai  )  <IP>            - Add IP to Database
+        
+        -note                 ( -n   )  <message>       - Add Notes about a domain
+        
+        -------------------------------
+        -rem-domain           ( -rd  )  <Domain>        - Remove Domain from Database
+        -rem-ip               ( -ri  )  <IP>            - Remove IP address from Database
+
+        -note                 ( -n   )  <message>       - Add Notes about a domain
+        
+        -------------------------------
+        -add-domain-notes     ( -adn )  <Domain>        - Add Notes about a Domain
+        -add-ip-notes         ( -ain )  <IP>            - Add IP address Notes
+        
+        -------------------------------
+        -list-domain          ( -ld  )                  - List domains in Database
+        -list-ips             ( -li  )                  - List IP addresses in Database
+        
+        -check-domain         ( -cd  ) <Domain>         - Check if Domain is in database
+        -check-ip             ( -ci  ) <IP>             - Check if IP is in database
+        
+        -list-domain-notes    ( -ldn ) <String>         - List Notes about Domain
+        -list-ip-notes        ( -lin ) <String>         - List Notes about IP
+
+        -search-domain        ( -sd  ) <String>         - Search for String in domain Names
+        --------------------------------
+        -search-domain-notes  ( -sdn ) <Domain>         - Search domain Notes 
+        -search-ip-notes      ( -sin ) <IP>             - Search IP Notes
+
+   \n";
+  exit;
+}
+
+if (defined($add_domain) ){ add_domain($add_domain); }
+if (defined($add_ip) ){ add_ip($add_ip); }
+if (defined($list_domains) ){ list_domains(); }
+if (defined($list_ips) ){ list_ip($add_ip); }
+if (defined($add_domain_notes)) { add_domain_notes($add_domain_notes); }
+if (defined($add_ip_notes)) { add_ip_notes($add_ip_notes); }
+if (defined($delete_domain)) { rem_domain($delete_domain); }
+if (defined($delete_ip)) { rem_ip($delete_ip); }
+if (defined($check_domain)) { check_domain($check_domain); }
+if (defined($check_ip)) { check_ip($check_ip); }
+if (defined($list_domain_notes)) { list_domain_notes($list_domain_notes); }
+if (defined($list_ip_notes))   { list_ip_notes($list_ip_notes); }
+if (defined($search_domain_notes)){ search_domain_notes($search_domain_notes); }
+if (defined($search_ip_notes)) { search_ip_notes($search_ip_notes); } 
+
+if (defined($search_domain)){ search_domain($search_domain); }
+
+
+## Initialize.  Ensure that database and tables exists.  If not, Create
+
+sub add_domain{
+    my $_add_domain = shift;
+	
+	my $domain_list_ref_active = list_domains("silent");
+    if (grep {$_add_domain =~ /^$_$/i } @{$domain_list_ref_active}) {
+		print "[x] Domain Already Active - $_add_domain\n";
+		exit;
+	}
+
+    if ($_add_domain =~ /^[a-zA-Z0-9][a-zA-Z0-9\-\_\.]+\.[a-zA-Z0-9]+$/){
+		my $sth = $dbh->prepare("INSERT INTO dns_addresses (dns_address, added) VALUES  ( ? , " . time . ")");
+		 $sth->execute($_add_domain);
+		print "[+] Domain \"$_add_domain\" Addded\n";
+		if (defined($note)){ add_domain_notes($_add_domain); }
+		
+		
+    } else {
+            print "[!] Invalid Domain Name - \"$_add_domain\"\n";
+    }
+	
+}
+
+sub add_ip{
+    my $_add_ip = shift;
+	
+	my $domain_list_ref_active = list_ip("silent");
+    if (grep {$_add_ip =~ /^$_$/i } @{$domain_list_ref_active}) {
+		print "[x] IP Already Active - $_add_ip\n";
+		exit;
+	}
+
+    if ($_add_ip =~ /^[0-9\.]*$/){
+		my $sth = $dbh->prepare("INSERT INTO ip_addresses (ip_address, added) VALUES  ( ? , " . time . ")");
+		 $sth->execute($_add_ip);
+		print "[+] IP \"$_add_ip\" Addded\n";
+		if (defined($note)){ add_ip_notes($_add_ip); }
+
+    } else {
+            print "[!] Invalid IP Address - \"$_add_ip\"\n";
+    }
+	
+}
+
+sub rem_domain{
+    my $_rem_domain = shift;
+	
+	my $domain_list_ref_active = list_domains("silent");
+    if (grep {$_rem_domain =~ /^$_$/i } @{$domain_list_ref_active}) {
+        my $domain_id = get_domain_id($_rem_domain);
+
+		my $sth = $dbh->prepare("DELETE From dns_addresses WHERE dns_address_id = ?");
+		 $sth->execute($domain_id);
+		print "[-] Domain \"$_rem_domain\" Removed\n";
+		
+		$sth = $dbh->prepare("DELETE From dns_addresses_notes WHERE dns_address_id = ?");
+		 $sth->execute($domain_id);
+		print "[-] Domain \"$_rem_domain\" Notes Removed\n";
+	}
+	else {
+            print "[!] Invalid Domain Name - \"$_rem_domain\"\n";
+    }
+}
+
+
+sub rem_ip{
+    my $_rem_ip = shift;
+	
+	my $ip_list_ref_active = list_ip("silent");
+    if (grep {$_rem_ip =~ /^$_$/i } @{$ip_list_ref_active}) {
+        my $ip_id = get_ip_id($_rem_ip);
+
+		my $sth = $dbh->prepare("DELETE From ip_addresses WHERE ip_address_id = ?");
+		 $sth->execute($ip_id);
+		print "[-] IP \"$_rem_ip\" Removed\n";
+		
+		$sth = $dbh->prepare("DELETE From ip_addresses_notes WHERE ip_address_id = ?");
+		 $sth->execute($ip_id);
+		print "[-] IP \"$_rem_ip\" Notes Removed\n";
+	}
+	else {
+            print "[!] Invalid IP Address - \"$_rem_ip\"\n";
+    }
+}
+
+sub add_domain_notes{
+    my $_add_domain = shift;
+    my $domain_notes = "";
+	my $domain_list_ref_active = list_domains("silent");
+    if (grep {$_add_domain =~ /^$_$/i } @{$domain_list_ref_active}) {
+    	my $domain_id = get_domain_id($_add_domain);
+    	if (!defined($note)){
+    		print "Notes:\n";
+    		$domain_notes = <>;
+    		chomp($domain_notes);
+    	}
+    	else{
+	    	$domain_notes = $note;
+    	}
+    	
+		my $sth = $dbh->prepare("INSERT INTO dns_addresses_notes (dns_address_id, dns_address_notes, added) VALUES  ( ? , ?, " . time . ")");
+		 $sth->execute($domain_id, $domain_notes);
+		print "[+] Domain \"$_add_domain\" notes Addded\n     - Note: $domain_notes\n";
+	}
+	else{
+		print "[!] Nonexistent Domain\n";
+		exit;
+	}	
+}
+
+sub add_ip_notes{
+    my $_add_ip = shift;
+    my $ip_notes = "";
+	my $ip_list_ref_active = list_ip("silent");
+    if (grep {$_add_ip =~ /^$_$/i } @{$ip_list_ref_active}) {
+    	my $ip_id = get_ip_id($_add_ip);
+    	if (!defined($note)){
+    		print "Notes:\n";
+    		$ip_notes = <>;
+    		chomp($ip_notes);
+    	}
+    	else{
+	    	$ip_notes = $note;
+    	}
+    	
+		my $sth = $dbh->prepare("INSERT INTO ip_addresses_notes (ip_address_id, ip_address_notes, added) VALUES  ( ? , ?, " . time . ")");
+		 $sth->execute($ip_id, $ip_notes);
+		print "[+] IP \"$_add_ip\" notes Addded\n     - Note: $ip_notes\n";
+	}
+	else{
+		print "[!] Nonexistent IP\n";
+		exit;
+	}	
+}
+
+sub list_ip{
+        my ($ip_address);
+        my $count = 0;
+        my $silent = shift;
+        my @ip_list = ();
+        
+
+        my $request_handle = $dbh->prepare('SELECT ip_address from ip_addresses');
+        $request_handle->execute();
+        $request_handle->bind_columns(undef, \$ip_address );
+        while($request_handle->fetch()){
+			if ($ip_address =~ /\./){
+				$count++;
+			print " [*] $ip_address\n" unless (defined($silent));
+			push(@ip_list, $ip_address);
+            }
+        }
+        print "\n [+] Total = $count\n" unless (defined($silent));
+        return \@ip_list;
+}
+
+
+sub list_domains{
+        my ($domain);
+        my $count = 0;
+        my $silent = shift;
+        my @domain_list = ();
+        
+
+        my $request_handle = $dbh->prepare('SELECT dns_address from dns_addresses');
+        $request_handle->execute();
+        $request_handle->bind_columns(undef, \$domain );
+        while($request_handle->fetch()){
+			if ($domain =~ /\./){
+				$count++;
+			print " [*] $domain\n" unless (defined($silent));
+			push(@domain_list, $domain);
+            }
+        }
+        print "\n [+] Total = $count\n" unless (defined($silent));
+        return \@domain_list;
+}
+
+sub get_domain_id{
+        my $domain = shift;
+        my $domain_id = "";
+        my $request_handle = $dbh->prepare('SELECT dns_address_id from dns_addresses where dns_address = ?');
+        $request_handle->execute($domain);
+        $request_handle->bind_columns(undef, \$domain_id );
+        $request_handle->fetch();
+        return $domain_id;
+}
+
+sub get_ip_id{
+        my $ip_address = shift;
+        my $IP_address_id = "";
+        my $request_handle = $dbh->prepare('SELECT ip_address_id from ip_addresses where ip_address = ?');
+        $request_handle->execute($ip_address);
+        $request_handle->bind_columns(undef, \$IP_address_id );
+        $request_handle->fetch();
+        return $IP_address_id;
+}
+
+sub check_domain{
+        my $domain = shift;
+        my $domain_list_ref_active = list_domains("silent");
+        if (grep {$domain =~ /^$_$/i } @{$domain_list_ref_active}) {
+        	print "[+] Domain $domain is in database\n";
+        } 
+        else{
+        	print "[x] Domain $domain is not in database\n";
+        }
+}
+sub check_ip{
+        my $ip_address = shift;
+        my $ip_list_ref_active = list_ip("silent");
+        if (grep {$ip_address =~ /^$_$/i } @{$ip_list_ref_active}) {
+        	print "[+] IP Address $ip_address is in database\n";
+        } 
+        else{
+        	print "[x] IP Address $ip_address is not in database\n";
+        }
+}
+
+sub list_domain_notes{
+    my $domain = shift;
+    my $domain_notes = "";
+	my $domain_list_ref_active = list_domains("silent");
+    if (grep {$domain =~ /^$_$/i } @{$domain_list_ref_active}) {
+    	my $domain_id = get_domain_id($domain);
+    	my $request_handle = $dbh->prepare('SELECT dns_address_notes from dns_addresses_notes where dns_address_id = ?');
+        $request_handle->execute($domain_id);
+        $request_handle->bind_columns(undef, \$domain_notes );
+        while($request_handle->fetch()){
+			if ($domain_notes =~ /[0-9A-Za-z]/){
+			print " [+] $domain_notes\n";
+            }
+        }
+	}
+	else{
+		print "[!] Nonexistent Domain\n";
+		exit;
+	}	
+}
+
+sub list_ip_notes{
+    my $ip_address = shift;
+    my $ip_notes = "";
+	my $ip_list_ref_active = list_ip("silent");
+    if (grep {$ip_address =~ /^$_$/i } @{$ip_list_ref_active}) {
+    	my $ip_id = get_ip_id($ip_address);
+    	my $request_handle = $dbh->prepare('SELECT ip_address_notes from ip_addresses_notes where ip_address_id = ?');
+        $request_handle->execute($ip_id);
+        $request_handle->bind_columns(undef, \$ip_notes );
+        while($request_handle->fetch()){
+			if ($ip_notes =~ /[0-9A-Za-z]/){
+			print " [+] $ip_notes\n";
+            }
+        }
+	}
+	else{
+		print "[!] Nonexistent Domain\n";
+		exit;
+	}	
+}
+
+sub search_domain_notes{
+    my $search_string = shift;
+    my $domain_name;
+	my $request_handle = $dbh->prepare('SELECT dns_addresses.dns_address 
+											FROM dns_addresses_notes 
+											JOIN dns_addresses 
+											ON dns_addresses.dns_address_id = dns_addresses_notes.dns_address_id 
+											WHERE dns_addresses_notes.dns_address_notes like "%' . $search_string . '%";');
+    $request_handle->execute();
+    $request_handle->bind_columns(undef, \$domain_name );
+    while($request_handle->fetch()){
+		if ($domain_name =~ /[\.]/){
+		print " [+] $domain_name\n";
+        }
+    }
+
+
+}
+
+sub search_ip_notes{
+    my $search_string = shift;
+    my $ip_address;
+	my $request_handle = $dbh->prepare('SELECT ip_addresses.ip_address 
+											FROM ip_addresses_notes 
+											JOIN ip_addresses 
+											ON ip_addresses.dns_address_id = ip_addresses_notes.ip_address_id 
+											WHERE ip_addresses_notes.ip_address_notes like "%' . $search_string . '%";');
+    $request_handle->execute();
+    $request_handle->bind_columns(undef, \$ip_address );
+    while($request_handle->fetch()){
+		if ($ip_address =~ /[\.]/){
+		print " [+] $ip_address\n";
+        }
+    }
+
+
+}
+
+sub search_domain{
+    my $search_string = shift;
+    my $domain_name;
+	my $request_handle = $dbh->prepare('SELECT dns_address 
+											FROM dns_addresses 
+											WHERE dns_address like "%' . $search_string . '%";');
+    $request_handle->execute();
+    $request_handle->bind_columns(undef, \$domain_name );
+    while($request_handle->fetch()){
+		if ($domain_name =~ /[A-Za-z0-9\.]/){
+		print " [+] $domain_name\n";
+        }
+    }
+
+
+}
+
+
+###//Fin
+

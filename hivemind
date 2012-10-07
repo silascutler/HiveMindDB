@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 ##########################################################################################
 #	hivemind
-#		- Interface wth 
+#		- Tool to databasing IP addresses and Domains as well as storing notes about the domains.
 #		- Version 1.0 Beta
 ##########################################################################################
 #     __  ___            __  ____           __

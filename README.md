@@ -2,8 +2,8 @@ HiveMindDB
 ==========
 
 Tool to databasing IP addresses and Domains as well as storing notes about the domains.
-
 Usage:
+<code>
 HiveMindDB v1.0 Beta [ (c) 2012 Silas Cutler ] 
 
 usage: /usr/bin/hivemind
@@ -36,5 +36,5 @@ usage: /usr/bin/hivemind
         --------------------------------
         -search-domain-notes  ( -sdn ) <Domain>         - Search domain Notes 
         -search-ip-notes      ( -sin ) <IP>             - Search IP Notes
-
+</code>
 

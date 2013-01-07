@@ -111,7 +111,7 @@ sub email_report{
 	
 	my $from = 'FROM ADDRESS';
 	
-	my @to = ('threat.monitor@sh3llbox.com');
+	my @to = ('TO ADDRESS');
 	my $subject= "DNS Change Alert $date";
 	
 	

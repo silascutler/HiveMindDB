@@ -7,7 +7,7 @@
 #     __  ___            __  ____           __
 #    / / / (_)   _____  /  |/  (_)___  ____/ /
 #   / /_/ / / | / / _ \/ /|_/ / / __ \/ __  / 
-#  / __  / /| |/ /  __/ /  / / / / / / /_/ /  
+#  / __  / /| |/ /  __/ /  / / / / / / /_/ /  	initdb
 # /_/ /_/_/ |___/\___/_/  /_/_/_/ /_/\__,_/   
 #  
 ##########################################################################################
@@ -62,7 +62,8 @@ print "Processing . . . table = ip_addresses\n";
 my $sql_statement = "
 	CREATE TABLE ip_addresses (
 		ip_address_id INT(200) NOT NULL AUTO_INCREMENT,
-		ip_address text,
+		ip_address VARCHAR(30) NOT NULL UNIQUE,
+		ip_monitor INT (1),
 		added text,
 			PRIMARY KEY (ip_address_id)
 		)";
@@ -76,7 +77,7 @@ print "Processing . . . table = ip_addresses_notes\n";
 $sql_statement = "
 	CREATE TABLE ip_addresses_notes (
 		ip_address_id INT(200) NOT NULL REFERENCES ip_addresses(ip_address_id),
-		ip_address_notes text,
+		ip_address_notes text NOT NULL,
 		added text
 
 	)
@@ -90,9 +91,9 @@ print "Processing . . . table = dns_addresses\n";
 $sql_statement = "
 	CREATE TABLE dns_addresses (
 		dns_address_id INT(200) NOT NULL AUTO_INCREMENT,
-		dns_address text,
+		dns_address varchar(200) NOT NULL UNIQUE,
+		ip_monitor INT (1),
 		added text,
-
 			PRIMARY KEY (dns_address_id)
 		)";
 
@@ -100,19 +101,50 @@ $sql_statement = "
 $sth = $dbh->prepare($sql_statement);
  $sth->execute;
 
-# Create Table sample - outbound connections
+# Create Table sample - dns_addresses_notes
 print "Processing . . . table = dns_addresses_notes\n";
 $sql_statement = "
 	CREATE TABLE dns_addresses_notes (
 		dns_address_id INT(200) NOT NULL REFERENCES dns_addresses(dns_address_id),
-		dns_address_notes text,
-		added text
+		dns_address_notes VARCHAR(500) NOT NULL,
+		added text,
+			PRIMARY KEY ( dns_address_id, dns_address_notes)
 	)
 	";
 #Submit Query 
 $sth = $dbh->prepare($sql_statement);
  $sth->execute;	
 	
+
+# Create Table sample - outbound connections
+print "Processing . . . table = dns_monitor_alerts\n";
+$sql_statement = "
+	CREATE TABLE dns_monitor_alerts (
+		dns_address_id INT(200) NOT NULL REFERENCES dns_addresses(dns_address_id),
+		dns_email text,
+		added text
+	)
+	";
+#Submit Query 
+$sth = $dbh->prepare($sql_statement);
+ $sth->execute;	
+
+print "Processing . . . table = dns_address_resolved\n";
+$sql_statement = "
+	CREATE TABLE dns_address_resolved (
+		dns_address_id INT(200) NOT NULL REFERENCES dns_addresses(dns_address_id),
+		dns_type VARCHAR(10),
+		dns_ttl int(10),
+		dns_resolved VARCHAR(50),
+		dns_first_seen VARCHAR(20),
+		dns_last_seen VARCHAR(20),
+			PRIMARY KEY (dns_address_id, dns_resolved)
+
+	)
+	";
+#Submit Query 
+$sth = $dbh->prepare($sql_statement);
+ $sth->execute;	
 
 print "Database Scheme Created!!\n\n";
 

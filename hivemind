@@ -59,7 +59,10 @@ my ($help,
 	$list_ip_notes,
 	$search_ip_notes,
 	$search_domain_notes,
-	$search_domain
+	$search_domain,
+	$monitor,
+	$monitor_domain,
+	$email
 	);
 	
 usage() if ( ( @ARGV < 1 or
@@ -84,15 +87,18 @@ usage() if ( ( @ARGV < 1 or
                 'list-domain-notes|ldn=s'         =>              \$list_domain_notes,
                 'list-ip-notes|lin=s'             =>              \$list_ip_notes,   
 
-                'search-domain-notes|sdn=s'         =>            \$search_domain_notes,
-                'search-ip-notes|sin=s'             =>            \$search_ip_notes,  
+                'search-domain-notes|sdn=s'       =>              \$search_domain_notes,
+                'search-ip-notes|sin=s'           =>              \$search_ip_notes,  
  
-                'search-domain|sd=s'     		    =>            \$search_domain,
+                'search-domain|sd=s'     		  =>              \$search_domain,
                 
                 'check-domain|cd=s'				  =>			  \$check_domain,
                 'check-ip|ci=s'					  =>			  \$check_ip,
 
-                'note|n=s'						  =>			  \$note
+                'note|n=s'						  =>			  \$note,
+                'monitor|m'                       =>              \$monitor,
+                'monitor-domain|md=s'             =>              \$monitor_domain,
+                'email|e=s'                       =>              \$email
 				
                         )
         or defined $help  )  );
@@ -109,7 +115,8 @@ sub usage{
         -add-ip               ( -ai  )  <IP>            - Add IP to Database
         
         -note                 ( -n   )  <message>       - Add Notes about a domain
-        
+        -monitor              ( -m   )                  - Monitor domain
+
         -------------------------------
         -rem-domain           ( -rd  )  <Domain>        - Remove Domain from Database
         -rem-ip               ( -ri  )  <IP>            - Remove IP address from Database
@@ -134,6 +141,13 @@ sub usage{
         --------------------------------
         -search-domain-notes  ( -sdn ) <Domain>         - Search domain Notes 
         -search-ip-notes      ( -sin ) <IP>             - Search IP Notes
+        --------------------------------
+        -monitor-domain       ( -md  )                  - Monitor domain
+
+        --------------------------------
+
+
+
 
    \n";
   exit;
@@ -153,8 +167,8 @@ if (defined($list_domain_notes)) { list_domain_notes($list_domain_notes); }
 if (defined($list_ip_notes))   { list_ip_notes($list_ip_notes); }
 if (defined($search_domain_notes)){ search_domain_notes($search_domain_notes); }
 if (defined($search_ip_notes)) { search_ip_notes($search_ip_notes); } 
-
 if (defined($search_domain)){ search_domain($search_domain); }
+if (defined($monitor_domain)){ add_monitoring($monitor_domain); }
 
 
 ## Initialize.  Ensure that database and tables exists.  If not, Create
@@ -173,6 +187,7 @@ sub add_domain{
 		 $sth->execute($_add_domain);
 		print "[+] Domain \"$_add_domain\" Addded\n";
 		if (defined($note)){ add_domain_notes($_add_domain); }
+		if (defined($monitor)) { add_monitoring($_add_domain); }
 		
 		
     } else {
@@ -474,6 +489,21 @@ sub search_domain{
 
 }
 
+sub add_monitoring{
+	my $mon_domain = shift;
+	
+	my $dns_list_ref_active = list_domains("silent");
+    if (grep {$mon_domain =~ /^$_$/i } @{$dns_list_ref_active}) {
+    	my $dns_id = get_domain_id($mon_domain);
+		my $sth = $dbh->prepare("UPDATE dns_addresses SET ip_monitor = '1' WHERE dns_address_id = ?");
+		 $sth->execute($dns_id );
+		print "[+] Domain \"$mon_domain\"  Addded to monitoring\n";
+	}
+	else{
+		print "[!] Nonexistent Domain\n";
+		exit;
+	}	
+}
 
 ###//Fin
 

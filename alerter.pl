@@ -109,7 +109,7 @@ sub email_report{
 	my $date = `date +%Y-%m-%d`;
 	chomp($date);
 	
-	my $from = 'dns_change@sh3llbox.net';
+	my $from = 'FROM ADDRESS';
 	
 	my @to = ('threat.monitor@sh3llbox.com');
 	my $subject= "DNS Change Alert $date";
